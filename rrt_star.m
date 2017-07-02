@@ -69,6 +69,18 @@ problem = eval([variant '(RAND_SEED, MAX_NODES, MAP, CONF);']);
 %problem = RedundantManipulator(RAND_SEED, MAX_NODES, MAP, CONF);
 
 
+% obstacle drawing
+% hold on;
+% axis(problem.XY_BOUNDARY);
+% for k = 1:problem.obstacle.num
+%     p2 = fill(problem.obstacle.output{k}(1:end, 1), problem.obstacle.output{k}(1:end, 2), 'k');
+%     set(p2,'HandleVisibility','off','EdgeAlpha',0);
+%     %this.plot_circle(this.obstacle.cir_center{k}(1),this.obstacle.cir_center{k}(2), this.obstacle.r(k));
+%     set(p2,'HandleVisibility','off','EdgeAlpha',0);
+% end
+% plot(problem.tree(1,1), problem.tree(2,1),'*r-','LineWidth', 20);
+% problem.plot_circle(problem.goal_point(1), problem.goal_point(2), problem.delta_goal_point);
+
 if (is_benchmark)
     benchmark_record_step = 250;
     benchmark_states = cell(MAX_ITER / benchmark_record_step, 1);
@@ -81,6 +93,7 @@ end
 disp(ALGORITHM);
 % starting timer
 tic;
+% current_index = 1;
 for ind = 1:MAX_ITER
     new_node = problem.sample();
     nearest_node_ind = problem.nearest(new_node);
@@ -90,6 +103,10 @@ for ind = 1:MAX_ITER
         min_node_ind = problem.chooseParent(neighbors, nearest_node_ind, new_node);
         new_node_ind = problem.insert_node(min_node_ind, new_node);
         problem.rewire(new_node_ind, neighbors, min_node_ind);
+%         current_index = current_index + 1;
+%         pause(0.001);
+%         plot([problem.tree(1,current_index);problem.tree(1, problem.parent(current_index))],...
+%             [problem.tree(2, current_index);problem.tree(2, problem.parent(current_index))],'b-','LineWidth', 0.5);
     end
     
     if is_benchmark && (mod(ind, benchmark_record_step) == 0)
@@ -100,7 +117,43 @@ for ind = 1:MAX_ITER
     
     if(mod(ind, 1000) == 0)
         disp([num2str(ind) ' iterations ' num2str(problem.nodes_added-1) ' nodes in ' num2str(toc) ' rewired ' num2str(problem.num_rewired)]);
+        problem.plot();
+        %%% Find the optimal path to the goal
+        % finding all the point which are in the desired region
+%         distances = zeros(problem.nodes_added, 2);
+%         distances(:, 1) = sum((problem.tree(:,1:(problem.nodes_added)) - repmat(problem.goal_point', 1, problem.nodes_added)).^2);
+%         distances(:, 2) = 1:problem.nodes_added;
+%         distances = sortrows(distances, 1);
+%         distances(:, 1) = distances(:, 1) <= problem.delta_goal_point ^ 2;
+%         dist_index = numel(find(distances(:, 1) == 1));
+%         % find the cheapest path
+%         if(dist_index ~= 0)
+%            distances(:, 1) = problem.cumcost(int32(distances(:, 2)));
+%            distances = distances(1:dist_index, :);
+%            distances = sortrows(distances, 1);
+%            nearest_node_index = distances(1,2);
+%         else
+%            disp('NOTICE! Robot cannot reach the goal');
+%            nearest_node_index = distances(1,2);
+%         end
+%         % backtracing the path
+%         current_index = nearest_node_index;
+%         path_iter = 1;
+%         backtrace_path = zeros(1,1);
+%         while(current_index ~= 1)
+%             backtrace_path(path_iter) = current_index;
+%             path_iter = path_iter + 1;
+%             current_index = problem.parent(current_index);
+%         end
+%         backtrace_path(path_iter) = current_index;
+%         plot(problem.tree(1,backtrace_path), problem.tree(2,backtrace_path),'*g-','LineWidth', 2);
+        
     end
+    
+    
+    
+%     hold on;
+%     problem.plot();
 end
 
 if (is_benchmark)
@@ -122,6 +175,7 @@ if (is_benchmark)
 %     problem.plot();
 %     saveas(gcf, [dir_name '\' ALGORITHM '_' MAP.name '_' num2str(MAX_NODES) '_of_' num2str(MAX_ITER) '_' datestr(now, 'HH-MM-SS') '.fig']);
 else
-    problem.plot();
+%     figure();
+%     problem.plot();
 end
 
