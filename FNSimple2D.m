@@ -423,6 +423,8 @@ classdef FNSimple2D < handle
             % method looks thru all neighbors(except min_node_ind) and
             % seeks and reconnects neighbors to the new node if it is
             % cheaper
+            
+            %queue利用队列进行宽度优先遍历所有子节点
             queue = zeros(1, int32(this.max_nodes/5));
             for ind = 1:numel(neighbors)
                 % omit
@@ -443,13 +445,17 @@ classdef FNSimple2D < handle
                     top = 0;
                     bottom = bottom + 1;
                     queue(bottom) = neighbors(ind);
+                    %delta_cost用于子节点权值更新 
                     delta_cost = temp_cost - this.cumcost(neighbors(ind));
                     
+                    %对rewire过的节点更新其子节点权重，用于寻找最优路径
                     while top < bottom
                         top = top+1;
                         cur = queue(top);
+                        %this.cumcost(cur)更新子节点权重
                         this.cumcost(cur) = this.cumcost(cur)+delta_cost;
                         kids = this.list(this.parent == cur);
+                        %将该节点下的所有子节点存入列表
                         for k_ind = 1:numel(kids)
                             bottom = bottom + 1;
                             queue(bottom) = kids(k_ind);
